@@ -26,7 +26,6 @@ set(0,'defaultfigurewindowstyle','docked')
 %% Define (pre)processing parameters
 
 %params is a struct containing all parameters
-disp('as')
 params.fs = 32;        %as in the paper
 params.winSize = 0.5;  %seconds
 params.activityLabels = {'NULL', 'Open window', 'Drink', 'Water plant',...
