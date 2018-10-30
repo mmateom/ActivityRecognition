@@ -1,9 +1,12 @@
 function dataNorm = normalizeData(dataFilt)
-%normalizeAccData normalizes filtered ACCELERATION data
+%normalizeAccData normalizes filtered IMU data
 %   INPUT
 %       dataFilt: filtered data array
 %   OUTPUT
 %       dataNorm: normalized data array
+%
+% by Mikel Mateo - University of Twente - October 2018 
+% for The BioRobotics Institute - Scuola Superiore Sant'Anna
 
 numVars = size(dataFilt,2)-1; %columns are variables: accS1x, gyro...
                               %-1 to not take labels

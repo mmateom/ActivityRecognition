@@ -1,6 +1,8 @@
 function f = getFFT(window,fs)
 %getFFT gets FFT of window
 % 
+% by Mikel Mateo - University of Twente - October 2018 
+% for The BioRobotics Institute - Scuola Superiore Sant'Anna
 
 samples = length(window);  % samples in a window
 

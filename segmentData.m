@@ -17,7 +17,9 @@ function dataSegStruct = segmentData(dataNorm,winSize,fs)
 %                                    |
 %                                    |
 %                                all the windows
-
+%
+% by Mikel Mateo - University of Twente - October 2018 
+% for The BioRobotics Institute - Scuola Superiore Sant'Anna
 
 
 

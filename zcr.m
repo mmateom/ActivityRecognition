@@ -14,6 +14,9 @@ function zeroXRate = zcr(dataWin)
 %   abs:  make it absolute values
 %   sum and devide by the length of the window to get the reate.
 %   inspired by: https://nl.mathworks.com/matlabcentral/fileexchange/31663-zero-crossing-rate
+%
+% by Mikel Mateo - University of Twente - October 2018 
+% for The BioRobotics Institute - Scuola Superiore Sant'Anna
 
     zeroXRate= sum(abs(diff(dataWin>0)))/length(dataWin); %zero cross rate per window
 

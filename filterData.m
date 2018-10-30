@@ -10,6 +10,9 @@ function dataFilt = filterData(dataIMURawLabeled,fs,getGA)
 %                   for 'ba': | BA | gyro | Lables
 %                   for 'gaba': GA[(x1,y1,z1),(x2,y2,z2),(x3,y3,z3),(smv1,smv2,smv3)] | BA | gyro | Lables
 %
+% by Mikel Mateo - University of Twente - October 2018 
+% for The BioRobotics Institute - Scuola Superiore Sant'Anna
+%%
 %if not specified, get body component only
  if nargin < 3
         getGA = 'ba';
