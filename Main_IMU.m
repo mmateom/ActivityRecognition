@@ -19,101 +19,134 @@ set(0,'defaultfigurewindowstyle','docked')
 %params is a struct containing all parameters
 params.fs = 200;       %Hz
 params.winSize = 0.5;  %seconds
-params.activityLabels = {          
-            'Fork and knife', 'Drink water','Drink coffee','Use scissors*','Standing eating',...
-            'Standing drinking','Cutting with a knife',...
-            'Chopping with a knife', 'Open/close bottle cap*','Open/close jam(bigger cap)*',...
-            'Do/undo shirt buttons*','Do/undo trousers zip*','Put socks*',...
-            'Tie shoes*','Scrubbing','Folding laundry','Vacuuming','Washing dishes','Setting table',...
-            'Ironing*','Dusting','Sweep','Making the bed','Window cleaning','Mopping','Open/close window',...
-            'Open/close door','Push door','Brush teeth','Grooming','Wash face',...
-            'Wash hands','Running','Cycling','Jumping','Walk','Walk carrying items','Standing still',...
-            %'Climb stairs','Down stairs'
-            'Watching TV','Reading','Typing in computer','Sitting','Lying down','Lying down using computer'};
+% params.activityLabels = {
+%              %//hand grasp movements
+%         'Power';...
+%         'Pinch';...
+%         'Lateral';...
+%         'Wrist Flexion';...
+%         'Wrist Extension';...
+%         'Pronation';...
+%         'Supination';...
+%         %//Activities
+%         'Fork and knife';...
+%         'Drink water';...
+%         'Drink coffee';...
+%         'Use scissors';...
+%         'Standing eating';...
+%         'Standing drinking';...
+%         'Cutting with a knife';
+%         'Chopping with a knife';...
+%         'Open/close bottle cap';...
+%         'Open/close jam(bigger cap)';...
+%         'Do/undo shirt buttons';...
+%         'Do/undo trousers zip';...
+%         'Put socks';...
+%         'Tie shoes';...
+%         'Scrubbing';...
+%         'Folding laundry';...
+%         'Vacuuming';...
+%         'Washing dishes';...
+%         'Setting table';...
+%         'Ironing';...
+%         'Dusting';...
+%         'Sweep';...
+%         'Making the bed';...
+%         'Window cleaning';...
+%         'Mopping';...
+%         'Open/close window';...
+%         'Open/close door';...
+%         'Push door';...
+%         'Brush teeth';...
+%         'Grooming';...
+%         'Wash face';...
+%         'Wash hands';...
+%         'Running';'Cycling';...
+%         'Jumping';...
+%         'Walk';'Walk carrying items';'Standing still';...
+%         'Watching TV';'Reading';'Sitting';'Typing in computer';'Lying down';'Lying down using computer';
+%  };
+
+for feat = 1:64
+    params.activityLabels{:,feat} = ['P',num2str(feat)];
+end
 
 %-------------------------------------------------
 params.dataPlots     = 0;    %change to 1 to activate accel. plots
-params.nullDelete    = 0;    %delete 'NULL' instances
+%params.nullDelete    = 0;    %delete 'NULL' instances
 params.pcaReduct     = 0;    %perform dimens reduction with PCA
-params.smv           = 1;    %take data with calculated SMV
-params.extraFeatures = 0;
+params.extraFeatures = 1;
+%params.getGA = 'ba';  
+ %params.getGA = 'gaba';  %get gravity and body component
 
 %% Load raw data files
 
-if params.smv  %take SMV too
-    load('dataLabeledAccGyroOrderedSMV');
-    dataIMURawLabeled = data.sensorsSignals; %data.variableNames also available
-    dataNames = data.variableNames;
-    
-    params.getGA = 'ba';  
-    %params.getGA = 'gaba';  %get gravity and body component
-    
-else    %no SMV
-    data = load('dataLabeledAccGyroOrdered');
-    dataIMURawLabeled = data.dataLabeledAccGyroOrdered;
-    
-    params.getGA = 'ba';  
-    %params.getGA = 'gaba';  %get gravity and body component    
+defpath = '/Users/mikel/Desktop/Data from GOOD experiments_1/';
+PathName = [defpath,'Step3_ReadyToProcess/'];
+FileName = 'dataIMUS';
+data = load([PathName,FileName]);  %Data from all subjects
 
-end
+dataIMULabeled = data.dataIMUS.sensorData; %data.variableNames also available
+varNames       = data.dataIMUS.varNames;
 
 %% Plot raw data
 
 if (params.dataPlots)
 figure;
-subplot(3,1,1);plot(dataIMURawLabeled(:,1),'r');title('Acceleration in x');
-subplot(3,1,2);plot(dataIMURawLabeled(:,2),'g');title('Acceleration in y');
-subplot(3,1,3);plot(dataIMURawLabeled(:,10),'b');title('Gyroscope in x');
+subplot(3,1,1);plot(dataIMULabeled(:,1),'r');title('Acceleration in x');
+subplot(3,1,2);plot(dataIMULabeled(:,2),'g');title('Acceleration in y');
+subplot(3,1,3);plot(dataIMULabeled(:,3),'b');title('Acceleration in z');
 suptitle('SAMPLE RAW DATA FROM S1')
 end
 
 
-%% Filter 
+%% Filter - EDIT: SIGNAL IS ALREADY FILTERED IN preproIMU. 
+%%%I don't separate GA and BA elements
 
 %'gaba' = gravity component separated in acc - DEFAULT
 %'ba'   = only body component in acc
-dataFiltStruct = filterData(dataIMURawLabeled,params.fs,params.getGA); %gaba = ROWSx34; ba = ROWSx16
-dataFilt = dataFiltStruct.filtData;
-dataFiltNames = dataFiltStruct.filtNames;
+% dataFiltStruct = filterData(dataIMULabeled,params.fs,params.getGA); %gaba = ROWSx34; ba = ROWSx16
+% dataFilt = dataFiltStruct.filtData;
+% dataFiltNames = dataFiltStruct.filtNames;
 
 %% Plot filtered data
 
-if (params.dataPlots)
-figure;
-subplot(3,2,1);plot(dataFilt(:,1),'r');title('Acceleration in x');
-subplot(3,2,3);plot(dataFilt(:,2),'g');title('Acceleration in y');
-subplot(3,2,5);plot(dataFilt(:,3),'b');title('Acceleration in z');
-subplot(3,2,2);plot(dataIMURawLabeled(:,1),'r');title('Acceleration in x');
-subplot(3,2,4);plot(dataIMURawLabeled(:,2),'g');title('Acceleration in y');
-subplot(3,2,6);plot(dataIMURawLabeled(:,3),'b');title('Acceleration in z');
-suptitle('FILTERED                ACC                      RAW');
+% if (params.dataPlots)
+% figure;
+% subplot(3,2,1);plot(dataFilt(:,1),'r');title('Acceleration in x');
+% subplot(3,2,3);plot(dataFilt(:,2),'g');title('Acceleration in y');
+% subplot(3,2,5);plot(dataFilt(:,3),'b');title('Acceleration in z');
+% subplot(3,2,2);plot(dataIMULabeled(:,1),'r');title('Acceleration in x');
+% subplot(3,2,4);plot(dataIMULabeled(:,2),'g');title('Acceleration in y');
+% subplot(3,2,6);plot(dataIMULabeled(:,3),'b');title('Acceleration in z');
+% suptitle('FILTERED                ACC                      RAW');
+% 
+% figure;
+% subplot(3,2,1);plot(dataFilt(:,10),'r');title('Acceleration in x');
+% subplot(3,2,3);plot(dataFilt(:,11),'g');title('Acceleration in y');
+% subplot(3,2,5);plot(dataFilt(:,12),'b');title('Acceleration in z');
+% subplot(3,2,2);plot(dataIMULabeled(:,10),'r');title('Acceleration in x');
+% subplot(3,2,4);plot(dataIMULabeled(:,12),'g');title('Acceleration in y');
+% subplot(3,2,6);plot(dataIMULabeled(:,12),'b');title('Acceleration in z');
+% suptitle('FILTERED       GYRO                                 RAW');
+% 
+% end
+%% Normalize data - I SHOULD NORMALIZE THE FEATURES!!!!
 
-figure;
-subplot(3,2,1);plot(dataFilt(:,10),'r');title('Acceleration in x');
-subplot(3,2,3);plot(dataFilt(:,11),'g');title('Acceleration in y');
-subplot(3,2,5);plot(dataFilt(:,12),'b');title('Acceleration in z');
-subplot(3,2,2);plot(dataIMURawLabeled(:,10),'r');title('Acceleration in x');
-subplot(3,2,4);plot(dataIMURawLabeled(:,12),'g');title('Acceleration in y');
-subplot(3,2,6);plot(dataIMURawLabeled(:,12),'b');title('Acceleration in z');
-suptitle('FILTERED       GYRO                                 RAW');
-
-end
-%% Normalize data
-
-dataNorm = normalizeData(dataFilt);
+%dataNorm = normalizeData(dataFilt);
 
 %% Segmentation
 
-dataSegStruct = segmentData(dataNorm,params.winSize,params.fs);
-
+% dataSegStruct = segmentData(dataNorm,params.winSize,params.fs);
+dataSeg = segmentData(dataIMULabeled,params.winSize,params.fs);
 %% Features Extraction
 
-dataTable = featureExtraction(dataSegStruct,params.activityLabels,params.extraFeatures);
+dataTable = featureExtraction(dataSeg,params.activityLabels,params.extraFeatures,params.fs);
 
-if params.nullDelete %delete NULL instances
-toDelete = dataTable.activities == 'NULL';
-dataTable(toDelete,:) = [];
-end
+% if params.nullDelete %delete NULL instances
+% toDelete = dataTable.activities == 'NULL';
+% dataTable(toDelete,:) = [];
+% end
 %% Feature Transformation - Dimensionality reduction (1) - OPTIONAL
 
 if params.pcaReduct

@@ -1,4 +1,4 @@
-function dataTable = featureExtraction(dataSegStruct,activityLabels,extraFeatures)
+function dataTable = featureExtraction(dataSeg,activityLabels,extraFeatures,fs)
 %featureExtraction extracts the following features from normalized, filtered raw data.
 %
 % Time features:
@@ -41,7 +41,8 @@ function dataTable = featureExtraction(dataSegStruct,activityLabels,extraFeature
 extra = extraFeatures;
 %% Compute features
 
-data = dataSegStruct.dataSeg;
+%data = dataSegStruct.dataSeg;
+data = dataSeg;
 
 %get sizes
 numVars = size(data,2)-1;   % how many variables: x,y,z and smv. -1 because 
@@ -65,34 +66,34 @@ firstDomFreqAmpVars = nan(windows,numVars);
 secondDomFreqVars = nan(windows,numVars);
 secondDomFreqAmpVars = nan(windows,numVars);
 
-for var = 1:numVars   %for each variable: acc/gyro: x,y,z or smv
+for vars = 1:numVars   %for each variable: acc/gyro: x,y,z or smv
     for w = 1:windows %calculate features for each window
         
         %%--Current window in current variable--
         
-        varWindow = data{var}(w,:);
+        varWindow = data{vars}(w,:);
         
         %%---------Time domain features------------
        
         
-        meanVars(w,var) =   mean(varWindow);
-        stdVars(w,var)  =   std(varWindow);
+        meanVars(w,vars) =   mean(varWindow);
+        stdVars(w,vars)  =   std(varWindow);
         if extra
-        minVars(w,var)  =   min(varWindow);
-        maxVars(w,var)  =   max(varWindow);
-        rangeVars(w,var)=   maxVars(w,var) - minVars(w,var);
-        zcrVars(w,var)  =   zcr(varWindow);
-        skewVars(w,var) =   skewness(varWindow);
-        kurtVars(w,var) =   kurtosis(varWindow);
+        minVars(w,vars)  =   min(varWindow);
+        maxVars(w,vars)  =   max(varWindow);
+        rangeVars(w,vars)=   maxVars(w,vars) - minVars(w,vars);
+        zcrVars(w,vars)  =   zcr(varWindow);
+        skewVars(w,vars) =   skewness(varWindow);
+        kurtVars(w,vars) =   kurtosis(varWindow);
         
         %%---------Frequency domain features--------
         
-        windowFreq = getFFT(varWindow); %get fft of window
+        [windowFreq,NFFT] = getFFT(varWindow,fs); %get fft of window
         
-        energyVars(w,var)   = sum(windowFreq.^2); %see ATSA Ex1.7
-        entropyVars(w,var)  = pentropy(varWindow);
+        energyVars(w,vars)   = sum(windowFreq.^2); %see ATSA Ex1.7
+        entropyVars(w,vars)  = mean(pentropy(varWindow,fs));
         
-        [domFreq, domFreqAmps]= getDominantFreqs(windowFreq,2); %first two dom freqs. 
+        [domFreq, domFreqAmps]= getDominantFreqs(windowFreq,2,NFFT,fs); %first two dom freqs. 
         firstDomFreqVars(w,vars)    = domFreq(1);
         firstDomFreqAmpVars(w,vars) = domFreqAmps(1);
         secondDomFreqVars(w,vars)   = domFreq(2);
@@ -119,7 +120,7 @@ end
 
 %arrange activity labels
 %associate numbers 1-6 with labels
-activity = categorical(labelsMode,1:12,activityLabels);
+activity = categorical(labelsMode,1:64,activityLabels);
 %activity = labelsMode; %can't concatenate a double array and a categorical array...
 
        
