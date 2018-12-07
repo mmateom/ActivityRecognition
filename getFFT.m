@@ -1,4 +1,4 @@
-function [f,NFFT] = getFFT(window,fs)
+function [f,NFFT,f_grid] = getFFT(window,fs)
 %getFFT gets FFT of window
 % 
 % by Mikel Mateo - University of Twente - October 2018 
@@ -14,5 +14,7 @@ windHann = hanning(length(window))';
 x_w = windHann.*window;
 f = fft(x_w,NFFT)/fs;
 f=abs(f(1+(0:NFFT/2))); %only the first half 
+
+f_grid = (0:NFFT/2)/NFFT*fs;
 end
 

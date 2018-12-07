@@ -37,7 +37,7 @@ function dataTable = featureExtraction(dataSeg,activityLabels,extraFeatures,fs)
 % by Mikel Mateo - University of Twente - October 2018 
 % for The BioRobotics Institute - Scuola Superiore Sant'Anna         
 
-
+disp('Extracting features...May take a while')
 extra = extraFeatures;
 %% Compute features
 
@@ -82,22 +82,24 @@ for vars = 1:numVars   %for each variable: acc/gyro: x,y,z or smv
         minVars(w,vars)  =   min(varWindow);
         maxVars(w,vars)  =   max(varWindow);
         rangeVars(w,vars)=   maxVars(w,vars) - minVars(w,vars);
-        zcrVars(w,vars)  =   zcr(varWindow);
+        %zcrVars(w,vars)  =   zcr(varWindow);%column 181 = accX1
         skewVars(w,vars) =   skewness(varWindow);
         kurtVars(w,vars) =   kurtosis(varWindow);
         
         %%---------Frequency domain features--------
         
-        [windowFreq,NFFT] = getFFT(varWindow,fs); %get fft of window
+        [windowFreq,NFFT,fgrid] = getFFT(varWindow,fs); %get fft of window
         
         energyVars(w,vars)   = sum(windowFreq.^2); %see ATSA Ex1.7
         entropyVars(w,vars)  = mean(pentropy(varWindow,fs));
         
-        [domFreq, domFreqAmps]= getDominantFreqs(windowFreq,2,NFFT,fs); %first two dom freqs. 
-        firstDomFreqVars(w,vars)    = domFreq(1);
-        firstDomFreqAmpVars(w,vars) = domFreqAmps(1);
-        secondDomFreqVars(w,vars)   = domFreq(2);
-        secondDomFreqAmpVars(w,vars)= domFreqAmps(2);
+
+        
+%         [domFreq, domFreqAmps]= getDominantFreqs(windowFreq,2,NFFT,fs); %first two dom freqs. 
+%         firstDomFreqVars(w,vars)    = domFreq(1);
+%         firstDomFreqAmpVars(w,vars) = domFreqAmps(1);
+%         secondDomFreqVars(w,vars)   = domFreq(2);
+%         secondDomFreqAmpVars(w,vars)= domFreqAmps(2);
 
         
         end
@@ -120,13 +122,13 @@ end
 
 %arrange activity labels
 %associate numbers 1-6 with labels
-activity = categorical(labelsMode,1:64,activityLabels);
-%activity = labelsMode; %can't concatenate a double array and a categorical array...
+%activity = categorical(labelsMode,1:64,activityLabels);
+activity = labelsMode; %can't concatenate a double array and a categorical array...
 
        
 %Create table with variables
-if extra, toTable = [meanVars,stdVars,minVars,maxVars,rangeVars,...
-                    zcrVars,skewVars,kurtVars];
+if extra, toTable = [meanVars,stdVars,minVars,maxVars,rangeVars,...zcrVars
+                    skewVars,kurtVars,energyVars,entropyVars];
 else, toTable = [meanVars,stdVars]; end
        
 %with toTable array      
@@ -148,5 +150,6 @@ names = [names,'activities'];
 %Give variables a name
 
 dataTable.Properties.VariableNames = names;
+disp('Features extracted')
 end
 

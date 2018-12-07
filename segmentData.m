@@ -25,7 +25,8 @@ function dataSeg = segmentData(dataIMU,winSize,fs)
 
 %Ts = 0.0313, which means each samples lasts 0.0313.
 %if I want a window of X seconds,then X/0.0313 = Y samples per window.
-
+disp('Windowing data...')
+%%
 Ts = 1/fs;
 samplesPerWindow = ceil(winSize/Ts);
 
@@ -48,5 +49,6 @@ end
 % %                         'gyr3x','gyr3y',...
 % %                         'gyr1smv','gyr2smv','gyr3smv',...
 % %                         'labels'};
+disp('Data windowed')
 end
 

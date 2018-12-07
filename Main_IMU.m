@@ -17,8 +17,8 @@ set(0,'defaultfigurewindowstyle','docked')
 %% Define (pre)processing parameters
 
 %params is a struct containing all parameters
-params.fs = 200;       %Hz
-params.winSize = 0.5;  %seconds
+params.fs = 100;       %Hz
+params.winSize = 1;  %seconds
 % params.activityLabels = {
 %              %//hand grasp movements
 %         'Power';...
@@ -68,17 +68,13 @@ params.winSize = 0.5;  %seconds
 %  };
 
 for feat = 1:64
-    params.activityLabels{:,feat} = ['P',num2str(feat)];
+    params.activityLabels{:,feat} = feat;
 end
 
 %-------------------------------------------------
 params.dataPlots     = 0;    %change to 1 to activate accel. plots
-%params.nullDelete    = 0;    %delete 'NULL' instances
 params.pcaReduct     = 0;    %perform dimens reduction with PCA
-params.extraFeatures = 1;
-%params.getGA = 'ba';  
- %params.getGA = 'gaba';  %get gravity and body component
-
+params.extraFeatures = 0;
 %% Load raw data files
 
 defpath = '/Users/mikel/Desktop/Data from GOOD experiments_1/';
@@ -90,7 +86,6 @@ dataIMULabeled = data.dataIMUS.sensorData; %data.variableNames also available
 varNames       = data.dataIMUS.varNames;
 
 %% Plot raw data
-
 if (params.dataPlots)
 figure;
 subplot(3,1,1);plot(dataIMULabeled(:,1),'r');title('Acceleration in x');
@@ -98,55 +93,15 @@ subplot(3,1,2);plot(dataIMULabeled(:,2),'g');title('Acceleration in y');
 subplot(3,1,3);plot(dataIMULabeled(:,3),'b');title('Acceleration in z');
 suptitle('SAMPLE RAW DATA FROM S1')
 end
-
-
-%% Filter - EDIT: SIGNAL IS ALREADY FILTERED IN preproIMU. 
-%%%I don't separate GA and BA elements
-
-%'gaba' = gravity component separated in acc - DEFAULT
-%'ba'   = only body component in acc
-% dataFiltStruct = filterData(dataIMULabeled,params.fs,params.getGA); %gaba = ROWSx34; ba = ROWSx16
-% dataFilt = dataFiltStruct.filtData;
-% dataFiltNames = dataFiltStruct.filtNames;
-
-%% Plot filtered data
-
-% if (params.dataPlots)
-% figure;
-% subplot(3,2,1);plot(dataFilt(:,1),'r');title('Acceleration in x');
-% subplot(3,2,3);plot(dataFilt(:,2),'g');title('Acceleration in y');
-% subplot(3,2,5);plot(dataFilt(:,3),'b');title('Acceleration in z');
-% subplot(3,2,2);plot(dataIMULabeled(:,1),'r');title('Acceleration in x');
-% subplot(3,2,4);plot(dataIMULabeled(:,2),'g');title('Acceleration in y');
-% subplot(3,2,6);plot(dataIMULabeled(:,3),'b');title('Acceleration in z');
-% suptitle('FILTERED                ACC                      RAW');
-% 
-% figure;
-% subplot(3,2,1);plot(dataFilt(:,10),'r');title('Acceleration in x');
-% subplot(3,2,3);plot(dataFilt(:,11),'g');title('Acceleration in y');
-% subplot(3,2,5);plot(dataFilt(:,12),'b');title('Acceleration in z');
-% subplot(3,2,2);plot(dataIMULabeled(:,10),'r');title('Acceleration in x');
-% subplot(3,2,4);plot(dataIMULabeled(:,12),'g');title('Acceleration in y');
-% subplot(3,2,6);plot(dataIMULabeled(:,12),'b');title('Acceleration in z');
-% suptitle('FILTERED       GYRO                                 RAW');
-% 
-% end
-%% Normalize data - I SHOULD NORMALIZE THE FEATURES!!!!
-
-%dataNorm = normalizeData(dataFilt);
-
 %% Segmentation
 
 % dataSegStruct = segmentData(dataNorm,params.winSize,params.fs);
 dataSeg = segmentData(dataIMULabeled,params.winSize,params.fs);
+
 %% Features Extraction
 
 dataTable = featureExtraction(dataSeg,params.activityLabels,params.extraFeatures,params.fs);
 
-% if params.nullDelete %delete NULL instances
-% toDelete = dataTable.activities == 'NULL';
-% dataTable(toDelete,:) = [];
-% end
 %% Feature Transformation - Dimensionality reduction (1) - OPTIONAL
 
 if params.pcaReduct
@@ -177,10 +132,14 @@ n = size(dataTrain,1);
 d = size(dataTrain,2);
 params.ratio = n/d;
 
-if params.ratio<10
+if params.ratio<10 %Mannini 2010
     warning(['The ratio between instances and features is less than 10.\n',...
             'Successful model training not guaranteed']);
 end
+
+%% Feature Normalization
+
+[dataTrain,dataTest] = featureNormalization(dataTrain,dataTest);
 
 %% Feature Selection  - Dimensionality reduction (2)
 % X_train = double(dataTrain{:,1:end-1});   %predictors
@@ -202,17 +161,17 @@ end
 
 
 %% Validate with dataTest
-
+disp('Predicting...')
 testPred = predict(mdl, dataTest);
-
+disp('Prediction done')
 %% Test error
-
+disp('Evaluting model...')
 lossTest    = loss(mdl,dataTest);
 
 [cm, grp]   = confusionmat(dataTest.activities,testPred);
 stats       = confusionmatStats(cm);%custom function from community
 accuracy    = stats.accuracy*100;%make it a percentage
-
+disp('Model evaluated')
 %% Display the results
 
 figure(3);
